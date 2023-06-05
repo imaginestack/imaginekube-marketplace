@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wordpress-pv-claim
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: $VOLUME_SIZE
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+      - image: wordpress:5.6.2
+        name: wordpress
+        ports:
+        - name: web
+          containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /var/www/html
+          name: data
+          subPath: html
+        livenessProbe:
+          httpGet:
+            port: web
+            path: /
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            port: web
+            path: /
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+      initContainers:
+      - name: prepare-ssl-config
+        image: busybox
+        command: ["sh", "-c"]
+        args:
+        - if [ ! -e /var/www/html/imaginekube-init.sh ]; then
+            WP_CONFIG_FILE=/var/www/html/wp-config-sample.php;
+            
+            echo "LINES=\$(cat $WP_CONFIG_FILE | wc -l)" >> /var/www/html/imaginekube-init.sh;
+            echo "let LINES=\$LINES-2" >> /var/www/html/imaginekube-init.sh;
+            echo "head -\${LINES} wp-config-sample.php > /tmp/head_temp.txt" >> /var/www/html/imaginekube-init.sh;
+            echo "tail -3 wp-config-sample.php > /tmp/tail_temp.txt" >> /var/www/html/imaginekube-init.sh;
+            echo "echo 'if (isset(\$_SERVER[\"HTTP_X_FORWARDED_PROTO\"]) && \$_SERVER[\"HTTP_X_FORWARDED_PROTO\"] === \"https\") {' >> /tmp/head_temp.txt" >> /var/www/html/imaginekube-init.sh;
+            echo "echo '    \$_SERVER[\"HTTPS\"] = \"on\";' >> /tmp/head_temp.txt" >> /var/www/html/imaginekube-init.sh;
+            echo "echo '}' >> /tmp/head_temp.txt" >> /var/www/html/imaginekube-init.sh;
+            echo "cat /tmp/head_temp.txt > $WP_CONFIG_FILE" >> /var/www/html/imaginekube-init.sh;
+            echo "cat /tmp/tail_temp.txt >> $WP_CONFIG_FILE" >> /var/www/html/imaginekube-init.sh;
+            echo "rm -f /tmp/head_temp.txt /tmp/tail_temp.txt" >> /var/www/html/imaginekube-init.sh;
+
+            chmod +x /var/www/html/imaginekube-init.sh;
+          fi;
+        volumeMounts:
+        - mountPath: /var/www/html
+          name: data
+          subPath: html
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: wordpress-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress
+spec:
+  ports:
+  - name: "http-80"
+    port: 80
+    targetPort: web
+  selector:
+    app: wordpress
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: wordpress
+spec:
+  rules:
+  - host: wordpress.$CLUSTER_ID.k8s.imaginekube.com
+    http:
+      paths:
+      - backend:
+          serviceName: wordpress
+          servicePort: 80
