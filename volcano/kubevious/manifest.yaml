@@ -1,0 +1,6 @@
+name: Kubevious
+version: v1.0.3
+maintainer: "@kubevious"
+description: "Kubevious is an app-centric assurance, validation, and introspection platform for Kubernetes."
+url: https://kubevious.io
+category: management
