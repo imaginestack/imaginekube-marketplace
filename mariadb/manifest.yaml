@@ -1,0 +1,24 @@
+---
+name: MariaDB
+version: 10.4.7
+maintainer: hello@imaginekube.com
+description: MariaDB is a community-developed fork of MySQL intended to remain free under the GNU GPL.
+url: https://mariadb.com
+category: database
+plans:
+  - label: "5GB"
+    configuration:
+      VOLUME_SIZE:
+        value: 5Gi
+  - label: "10GB"
+    configuration:
+      VOLUME_SIZE:
+        value: 10Gi
+  - label: "20GB"
+    configuration:
+      VOLUME_SIZE:
+        value: 20Gi
+configuration:
+  MYSQL_ROOT_PASSWORD:
+    label: "Root password"
+    value: "IMAGINE:ALPHANUMERIC(30)"
