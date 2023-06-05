@@ -1,6 +1,6 @@
 # Imagine Kubernetes Marketplace
 
-[![CircleCI](https://circleci.com/gh/imaginekube/kubernetes-marketplace.svg?style=svg)](https://circleci.com/gh/imaginekube/kubernetes-marketplace)
+
 
 ## Introduction
 
