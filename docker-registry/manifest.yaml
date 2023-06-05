@@ -1,0 +1,18 @@
+---
+name: docker-registry
+title: "Docker Registry"
+version: ALPHA
+maintainer: alejandro@imaginekube.com
+description: A registry is a storage and content delivery system, holding named Docker images, available in different tagged versions.
+url:
+dependencies:
+  - cert-manager
+category: architecture
+configuration:
+  REGISTRY_USERNAME:
+    label: "Registry username"
+    value: "IMAGINE:EMAIL_ADDRESS"
+  REGISTRY_PASSWD:
+    label: "Registry password"
+    value: "IMAGINE:ALPHANUMERIC(10)"
+disable: true
