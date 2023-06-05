@@ -1,0 +1,187 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: polaris
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: polaris
+  namespace: polaris
+  labels:
+    app: polaris
+    app.kubernetes.io/component: dashboard
+    app.kubernetes.io/instance: polaris
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: polaris
+  labels:
+    app: polaris
+    app.kubernetes.io/component: dashboard
+    app.kubernetes.io/instance: polaris
+    app.kubernetes.io/name: polaris
+    app.kubernetes.io/part-of: polaris
+rules:
+  # required by controller-runtime code doing a cluster wide lookup
+  # when it seems namespace would suffice
+  - apiGroups:
+      - ''
+    resources:
+      - 'nodes'
+    verbs:
+      - 'get'
+      - 'list'
+  - apiGroups:
+      - 'monitoring.coreos.com'
+    resources:
+      - 'prometheuses'
+      - 'alertmanagers'
+    verbs:
+      - 'get'
+      - 'list'
+  - apiGroups:
+      - 'rbac.authorization.k8s.io'
+    resources:
+      - 'clusterroles'
+      - 'clusterrolebindings'
+      - 'roles'
+      - 'rolebindings'
+    verbs:
+      - 'get'
+      - 'list'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: polaris-view
+  labels:
+    app: polaris
+    app.kubernetes.io/component: dashboard
+    app.kubernetes.io/instance: polaris
+    app.kubernetes.io/name: polaris
+    app.kubernetes.io/part-of: polaris
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+  - kind: ServiceAccount
+    name: polaris
+    namespace: polaris
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: polaris
+  labels:
+    app: polaris
+    app.kubernetes.io/component: dashboard
+    app.kubernetes.io/instance: polaris
+    app.kubernetes.io/name: polaris
+    app.kubernetes.io/part-of: polaris
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: polaris
+subjects:
+  - kind: ServiceAccount
+    name: polaris
+    namespace: polaris
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: polaris-dashboard
+  namespace: polaris
+  labels:
+    app: polaris
+    app.kubernetes.io/component: dashboard
+    app.kubernetes.io/instance: polaris
+    app.kubernetes.io/name: polaris
+    app.kubernetes.io/part-of: polaris
+  annotations:
+spec:
+  ports:
+  - name: http-dashboard
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: polaris
+    app.kubernetes.io/name: polaris
+    app.kubernetes.io/instance: polaris
+    component: dashboard
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: polaris-dashboard
+  namespace: polaris
+  labels:
+    app: polaris
+    app.kubernetes.io/component: dashboard
+    app.kubernetes.io/instance: polaris
+    app.kubernetes.io/name: polaris
+    app.kubernetes.io/part-of: polaris
+    component: dashboard
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: polaris
+      app.kubernetes.io/name: polaris
+      app.kubernetes.io/instance: polaris
+      component: dashboard
+  template:
+    metadata:
+      labels:
+        app: polaris
+        app.kubernetes.io/name: polaris
+        app.kubernetes.io/instance: polaris
+        component: dashboard
+    spec:
+      containers:
+      - command:
+        - polaris
+        - dashboard
+        - --port
+        - "8080"
+        - --log-level
+        - "Info"
+        image: 'quay.io/fairwinds/polaris:7.2'
+        imagePullPolicy: 'Always'
+        name: dashboard
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 20
+        resources:
+          limits:
+            cpu: 150m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+      serviceAccountName: polaris
