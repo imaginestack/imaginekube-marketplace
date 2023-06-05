@@ -1,0 +1,27 @@
+---
+name: MinIO
+version: "2019-08-29"
+maintainer: hello@imaginekube.com
+description: Minio is an Amazon S3 compatible object storage server.
+url: https://min.io
+category: storage
+configuration:
+  MINIO_ACCESS_KEY:
+    label: "Access key"
+    value: "IMAGINE:ALPHANUMERIC(10)"
+  MINIO_SECRET_KEY:
+    label: "Secret key"
+    value: "IMAGINE:ALPHANUMERIC(30)"
+plans:
+  - label: "5GB"
+    configuration:
+      PV_SIZE_GB:
+        value: 5Gi
+  - label: "10GB"
+    configuration:
+      PV_SIZE_GB:
+        value: 10Gi
+  - label: "20GB"
+    configuration:
+      PV_SIZE_GB:
+        value: 20Gi
