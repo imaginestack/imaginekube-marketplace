@@ -4,7 +4,7 @@
 
 ## Introduction
 
-[Imagine.com](https://www.imaginekube.com) is introducing the world's first managed K3s service and the marketplace will be provided from this repository. Feel free to fork it and submit a pull request to add any software and we'll consider including it in our marketplace (if you like, raise an [issue](https://github.com/imaginekube/kubernetes-marketplace/issues) first to discuss the proposal).
+Feel free to fork it and submit a pull request to add any software and we'll consider including it in our marketplace (if you like, raise an [issue](https://github.com/imaginekube/kubernetes-marketplace/issues) first to discuss the proposal).
 
 **STATUS:** This project is currently under active development and maintenance.
 
