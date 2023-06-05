@@ -1,0 +1,29 @@
+---
+name: FerretDB
+version: 1.2.1
+maintainer: packages@ferretdb.io
+description: A truly Open Source MongoDB alternative.
+url: https://www.ferretdb.io
+category: database
+required_services:
+  - loadbalancer
+plans:
+  - label: "5GB"
+    configuration:
+      VOLUME_SIZE:
+        value: 5Gi
+  - label: "10GB"
+    configuration:
+      VOLUME_SIZE:
+        value: 10Gi
+  - label: "20GB"
+    configuration:
+      VOLUME_SIZE:
+        value: 20Gi
+configuration:
+  POSTGRES_USER:
+    label: "PostgreSQL superuser name"
+    value: "IMAGINE:WORDS(2)"
+  POSTGRES_PASSWORD:
+    label: "PostgreSQL superuser password"
+    value: "IMAGINE:ALPHANUMERIC(30)"
